@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Magazijn Uitleen</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1><i class="fas fa-warehouse"></i> Vista Magazijn Uitleen</h1>
+                <p data-i18n="login.subtitle">Warehouse Management System</p>
+            </div>
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="username" data-i18n="login.username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" data-i18n="login.password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-i18n="login.submit">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="regUsername" data-i18n="register.username">Username</label>
+                    <input type="text" id="regUsername" name="username" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="regPassword" data-i18n="register.password">Password</label>
+                    <input type="password" id="regPassword" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="regConfirmPassword" data-i18n="register.confirmPassword">Confirm Password</label>
+                    <input type="password" id="regConfirmPassword" name="confirmPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="regRole" data-i18n="register.role">Role</label>
+                    <select id="regRole" name="role">
+                        <option value="user" data-i18n="register.roleUser">User</option>
+                        <option value="admin" data-i18n="register.roleAdmin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" data-i18n="register.submit">Register</button>
+                <div id="registerError" class="error-message"></div>
+            </form>
+
+            <!-- Auth Toggle -->
+            <div class="auth-toggle">
+                <p id="authToggleText">
+                    <span data-i18n="login.noAccount">Don't have an account?</span>
+                    <button type="button" id="showRegisterBtn" class="link-btn" onclick="toggleAuthForm()" data-i18n="login.register">Register</button>
+                </p>
+            </div>
+            <div class="login-footer">
+                <div class="language-switcher">
+                    <button onclick="setLanguage('nl')" class="lang-btn">NL</button>
+                    <button onclick="setLanguage('en')" class="lang-btn">EN</button>
+                </div>
+                <div class="theme-switcher">
+                    <button id="themeToggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-warehouse"></i> Vista Magazijn</h2>
+                <div class="user-info">
+                    <span id="userWelcome" data-i18n="dashboard.welcome">Welcome</span>
+                    <span id="currentUser"></span>
+                </div>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" onclick="showPage('dashboard')" class="menu-item active">
+                    <i class="fas fa-tachometer-alt"></i> <span data-i18n="menu.dashboard">Dashboard</span>
+                </a></li>
+                <li><a href="#" onclick="showPage('inventory')" class="menu-item">
+                    <i class="fas fa-boxes"></i> <span data-i18n="menu.inventory">Inventory</span>
+                </a></li>
+                <li><a href="#" onclick="showPage('orders')" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i> <span data-i18n="menu.orders">Orders</span>
+                </a></li>
+                <li><a href="#" onclick="showPage('returns')" class="menu-item">
+                    <i class="fas fa-undo"></i> <span data-i18n="menu.returns">Returns</span>
+                </a></li>
+                <li><a href="#" onclick="showPage('qrscan')" class="menu-item">
+                    <i class="fas fa-qrcode"></i> <span data-i18n="menu.qrscan">QR Scan</span>
+                </a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="controls">
+                    <div class="language-switcher">
+                        <button onclick="setLanguage('nl')" class="lang-btn">NL</button>
+                        <button onclick="setLanguage('en')" class="lang-btn">EN</button>
+                    </div>
+                    <button id="dashboardThemeToggle" onclick="toggleTheme()" class="theme-btn">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <button onclick="logout()" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> <span data-i18n="dashboard.logout">Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1 id="pageTitle" data-i18n="dashboard.title">Dashboard</h1>
+                <div class="header-actions">
+                    <button id="refreshBtn" onclick="refreshCurrentPage()" class="btn btn-outline">
+                        <i class="fas fa-sync-alt"></i> <span data-i18n="common.refresh">Refresh</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalItems">0</h3>
+                            <p data-i18n="dashboard.totalItems">Total Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="stat-info">
+                            <h3 id="pendingOrders">0</h3>
+                            <p data-i18n="dashboard.pendingOrders">Pending Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-undo"></i></div>
+                        <div class="stat-info">
+                            <h3 id="recentReturns">0</h3>
+                            <p data-i18n="dashboard.recentReturns">Recent Returns</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="lowStock">0</h3>
+                            <p data-i18n="dashboard.lowStock">Low Stock Items</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="recent-activity">
+                    <h2 data-i18n="dashboard.recentActivity">Recent Activity</h2>
+                    <div id="recentActivityList" class="activity-list">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Page -->
+            <div id="inventoryPage" class="page">
+                <div class="page-actions">
+                    <button onclick="showAddInventoryModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> <span data-i18n="inventory.addItem">Add Item</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="inventoryTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="inventory.name">Name</th>
+                                <th data-i18n="inventory.quantity">Quantity</th>
+                                <th data-i18n="inventory.location">Location</th>
+                                <th data-i18n="inventory.inspectionDate">Inspection Date</th>
+                                <th data-i18n="inventory.description">Description</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Inventory items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="ordersPage" class="page">
+                <div class="page-actions">
+                    <button onclick="showAddOrderModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> <span data-i18n="orders.addOrder">Add Order</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="ordersTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="orders.studentNumber">Student Number</th>
+                                <th data-i18n="orders.name">Name</th>
+                                <th data-i18n="orders.article">Article</th>
+                                <th data-i18n="orders.status">Status</th>
+                                <th data-i18n="orders.date">Date</th>
+                                <th data-i18n="orders.comments">Comments</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Returns Page -->
+            <div id="returnsPage" class="page">
+                <div class="page-actions">
+                    <button onclick="showAddReturnModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> <span data-i18n="returns.addReturn">Add Return</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="returnsTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="returns.article">Article</th>
+                                <th data-i18n="returns.studentNumber">Student Number</th>
+                                <th data-i18n="returns.name">Name</th>
+                                <th data-i18n="returns.returnDate">Return Date</th>
+                                <th data-i18n="returns.condition">Condition</th>
+                                <th data-i18n="returns.comments">Comments</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Returns will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- QR Scan Page -->
+            <div id="qrscanPage" class="page">
+                <div class="qr-scanner-container">
+                    <h2 data-i18n="qrscan.title">QR Code Scanner</h2>
+                    <div class="scanner-placeholder">
+                        <i class="fas fa-qrcode"></i>
+                        <p data-i18n="qrscan.placeholder">QR Scanner will be implemented here</p>
+                        <p data-i18n="qrscan.description">This feature will allow scanning QR codes for quick item lookup</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Inventory Modal -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="inventoryModalTitle" data-i18n="inventory.addItem">Add Item</h2>
+                <span class="close" onclick="closeModal('inventoryModal')">&times;</span>
+            </div>
+            <form id="inventoryForm">
+                <input type="hidden" id="inventoryId">
+                <div class="form-group">
+                    <label for="inventoryName" data-i18n="inventory.name">Name</label>
+                    <input type="text" id="inventoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryQuantity" data-i18n="inventory.quantity">Quantity</label>
+                    <input type="number" id="inventoryQuantity" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="inventoryLocation" data-i18n="inventory.location">Location</label>
+                    <input type="text" id="inventoryLocation">
+                </div>
+                <div class="form-group">
+                    <label for="inventoryInspectionDate" data-i18n="inventory.inspectionDate">Inspection Date</label>
+                    <input type="date" id="inventoryInspectionDate">
+                </div>
+                <div class="form-group">
+                    <label for="inventoryDescription" data-i18n="inventory.description">Description</label>
+                    <textarea id="inventoryDescription" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal('inventoryModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="orderModalTitle" data-i18n="orders.addOrder">Add Order</h2>
+                <span class="close" onclick="closeModal('orderModal')">&times;</span>
+            </div>
+            <form id="orderForm">
+                <input type="hidden" id="orderId">
+                <div class="form-group">
+                    <label for="orderStudentNumber" data-i18n="orders.studentNumber">Student Number</label>
+                    <input type="text" id="orderStudentNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderName" data-i18n="orders.name">Name</label>
+                    <input type="text" id="orderName" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderArticle" data-i18n="orders.article">Article</label>
+                    <input type="text" id="orderArticle" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderStatus" data-i18n="orders.status">Status</label>
+                    <select id="orderStatus">
+                        <option value="pending" data-i18n="orders.statusPending">Pending</option>
+                        <option value="approved" data-i18n="orders.statusApproved">Approved</option>
+                        <option value="rejected" data-i18n="orders.statusRejected">Rejected</option>
+                        <option value="completed" data-i18n="orders.statusCompleted">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orderDate" data-i18n="orders.date">Date</label>
+                    <input type="date" id="orderDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderComments" data-i18n="orders.comments">Comments</label>
+                    <textarea id="orderComments" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal('orderModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Return Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="returnModalTitle" data-i18n="returns.addReturn">Add Return</h2>
+                <span class="close" onclick="closeModal('returnModal')">&times;</span>
+            </div>
+            <form id="returnForm">
+                <input type="hidden" id="returnId">
+                <div class="form-group">
+                    <label for="returnArticle" data-i18n="returns.article">Article</label>
+                    <input type="text" id="returnArticle" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnStudentNumber" data-i18n="returns.studentNumber">Student Number</label>
+                    <input type="text" id="returnStudentNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnName" data-i18n="returns.name">Name</label>
+                    <input type="text" id="returnName" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnDate" data-i18n="returns.returnDate">Return Date</label>
+                    <input type="date" id="returnDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnCondition" data-i18n="returns.condition">Condition</label>
+                    <select id="returnCondition">
+                        <option value="goed" data-i18n="returns.conditionGood">Good</option>
+                        <option value="beschadigd" data-i18n="returns.conditionDamaged">Damaged</option>
+                        <option value="verloren" data-i18n="returns.conditionLost">Lost</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="returnComments" data-i18n="returns.comments">Comments</label>
+                    <textarea id="returnComments" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal('returnModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="magazijn.js"></script>
+</body>
+</html>
