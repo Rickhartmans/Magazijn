@@ -49,6 +49,7 @@ const i18n = {
         'menu.inventory': 'Voorraad',
         'menu.orders': 'Bestellingen',
         'menu.returns': 'Retourzendingen',
+        'menu.users': 'Gebruikers',
         'menu.qrscan': 'QR Scan',
         
         // Inventory
@@ -154,6 +155,7 @@ const i18n = {
         'menu.inventory': 'Inventory',
         'menu.orders': 'Orders',
         'menu.returns': 'Returns',
+        'menu.users': 'Users',
         'menu.qrscan': 'QR Scan',
         
         // Inventory
@@ -254,6 +256,10 @@ function t(key) {
     return i18n[currentLanguage]?.[key] || key;
 }
 
+function isAdmin() {
+    return currentUser && currentUser.role === 'admin';
+}
+
 function updateTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
@@ -345,7 +351,7 @@ async function login(username, password) {
     }
 }
 
-async function register(username, password, confirmPassword, role) {
+async function register(username, password, confirmPassword) {
     try {
         // Client-side validation
         if (password !== confirmPassword) {
@@ -354,17 +360,17 @@ async function register(username, password, confirmPassword, role) {
             document.getElementById('registerError').classList.add('show');
             return;
         }
-        
+
         const response = await apiCall('register.php', {
             method: 'POST',
-            body: JSON.stringify({ username, password, confirmPassword, role })
+            body: JSON.stringify({ username, password, confirmPassword })
         });
-        
+
         if (response.success) {
             setStoredValue(CONFIG.STORAGE_KEYS.TOKEN, response.data.token);
             setStoredValue(CONFIG.STORAGE_KEYS.USER, response.data.user);
             currentUser = response.data.user;
-            
+
             showDashboard();
             showToast(t('messages.registerSuccess'), 'success');
         }
@@ -375,7 +381,7 @@ async function register(username, password, confirmPassword, role) {
         } else {
             errorMessage = t('messages.registerError');
         }
-        
+
         showToast(errorMessage, 'error');
         document.getElementById('registerError').textContent = error.message;
         document.getElementById('registerError').classList.add('show');
@@ -409,26 +415,77 @@ function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
     document.getElementById('currentUser').textContent = currentUser.username;
-    
+
+    // Add users menu item for admins
+    if (isAdmin()) {
+        let usersMenuItem = document.querySelector('.menu-item[data-page="users"]');
+        if (!usersMenuItem) {
+            const menuContainer = document.querySelector('.sidebar-menu');
+            if (menuContainer) {
+                usersMenuItem = document.createElement('li');
+                usersMenuItem.className = 'menu-item';
+                usersMenuItem.setAttribute('data-page', 'users');
+
+                const link = document.createElement('a');
+                link.href = '#';
+                link.onclick = () => showPage('users');
+                link.innerHTML = `
+                    <i class="fas fa-users"></i>
+                    <span data-i18n="menu.users">Users</span>
+                `;
+
+                usersMenuItem.appendChild(link);
+                menuContainer.appendChild(usersMenuItem);
+            }
+        }
+    }
+
     loadDashboardData();
 }
 
 async function loadDashboardData() {
     try {
-        const [inventoryData, ordersData, returnsData] = await Promise.all([
-            apiCall('inventory.php'),
+        const [statsResponse, ordersData, returnsData] = await Promise.all([
+            apiCall('dashboard.php'),
             apiCall('orders.php'),
             apiCall('returns.php')
         ]);
-        
-        // Update dashboard stats
-        document.getElementById('totalItems').textContent = inventoryData.data?.length || 0;
-        document.getElementById('pendingOrders').textContent = 
-            ordersData.data?.filter(order => order.status === 'pending').length || 0;
-        document.getElementById('recentReturns').textContent = returnsData.data?.length || 0;
-        document.getElementById('lowStock').textContent = 
-            inventoryData.data?.filter(item => parseInt(item.aantal) < 5).length || 0;
-        
+
+        const stats = statsResponse.data;
+
+        // Update dashboard stats based on user role
+        if (isAdmin()) {
+            const totalItemsEl = document.getElementById('totalItems');
+            if (totalItemsEl) totalItemsEl.textContent = stats.total_inventory || 0;
+
+            const pendingOrdersEl = document.getElementById('pendingOrders');
+            if (pendingOrdersEl) pendingOrdersEl.textContent = stats.pending_orders || 0;
+
+            const recentReturnsEl = document.getElementById('recentReturns');
+            if (recentReturnsEl) recentReturnsEl.textContent = stats.total_returns || 0;
+
+            const lowStockEl = document.getElementById('lowStock');
+            if (lowStockEl) lowStockEl.textContent = stats.low_stock || 0;
+
+            const totalUsersEl = document.getElementById('totalUsers');
+            if (totalUsersEl) totalUsersEl.textContent = stats.total_users || 0;
+        } else {
+            const totalItemsEl = document.getElementById('totalItems');
+            if (totalItemsEl) totalItemsEl.textContent = stats.my_orders || 0;
+
+            const pendingOrdersEl = document.getElementById('pendingOrders');
+            if (pendingOrdersEl) pendingOrdersEl.textContent = stats.my_pending_orders || 0;
+
+            const recentReturnsEl = document.getElementById('recentReturns');
+            if (recentReturnsEl) recentReturnsEl.textContent = stats.my_returns || 0;
+
+            const lowStockEl = document.getElementById('lowStock');
+            if (lowStockEl) lowStockEl.textContent = '-';
+
+            const totalUsersEl = document.getElementById('totalUsers');
+            if (totalUsersEl) totalUsersEl.textContent = '-';
+        }
+
         // Load recent activity
         loadRecentActivity(ordersData.data, returnsData.data);
     } catch (error) {
@@ -471,37 +528,98 @@ function loadRecentActivity(orders, returns) {
         });
 }
 
+// Create users page dynamically
+function createUsersPage() {
+    let usersPage = document.createElement('div');
+    usersPage.id = 'usersPage';
+    usersPage.className = 'page';
+    usersPage.innerHTML = `
+        <div class="page-header">
+            <h2 data-i18n="menu.users">Users</h2>
+        </div>
+        <div class="page-content">
+            <table id="usersTable" class="data-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="register.username">Username</th>
+                        <th data-i18n="register.role">Role</th>
+                        <th data-i18n="common.actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    `;
+    document.querySelector('.main-content').appendChild(usersPage);
+}
+
 // Page Navigation
 function showPage(pageName) {
     // Update active menu item
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
-    event.target.closest('.menu-item').classList.add('active');
-    
+
+    // Find the menu item that was clicked
+    let menuItem = event.target.closest('.menu-item');
+    if (menuItem) {
+        menuItem.classList.add('active');
+    }
+
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    
+
+    // Create page if it doesn't exist
+    if (pageName === 'users' && !document.getElementById('usersPage')) {
+        createUsersPage();
+    }
+
     // Show selected page
-    document.getElementById(`${pageName}Page`).classList.add('active');
-    
+    if (pageName === 'users') {
+        const usersPage = document.getElementById('usersPage');
+        if (usersPage) {
+            usersPage.classList.add('active');
+        }
+    } else {
+        const pageElement = document.getElementById(`${pageName}Page`);
+        if (pageElement) {
+            pageElement.classList.add('active');
+        }
+    }
+
     // Update page title
-    document.getElementById('pageTitle').textContent = t(`menu.${pageName}`);
-    
+    const pageTitleElement = document.getElementById('pageTitle');
+    if (pageTitleElement) {
+        pageTitleElement.textContent = t(`menu.${pageName}`);
+    }
+
     currentPage = pageName;
-    
+
     // Load page data
     switch (pageName) {
         case 'inventory':
             loadInventory();
+            if (!isAdmin()) {
+                const addBtn = document.querySelector('#inventoryPage .btn-primary');
+                if (addBtn) addBtn.style.display = 'none';
+            }
             break;
         case 'orders':
             loadOrders();
+            initOrderSearch();
             break;
         case 'returns':
             loadReturns();
+            initReturnSearch();
+            break;
+        case 'users':
+            if (isAdmin()) {
+                loadUsers();
+            } else {
+                showPage('dashboard');
+            }
             break;
         case 'dashboard':
             loadDashboardData();
@@ -522,20 +640,24 @@ async function loadInventory() {
         
         response.data?.forEach(item => {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.naam}</td>
-                <td>${item.aantal}</td>
-                <td>${item.locatie || '-'}</td>
-                <td>${item.keuringsdatum || '-'}</td>
-                <td>${item.beschrijving || '-'}</td>
-                <td>
+            let actions = '';
+            if (isAdmin()) {
+                actions = `
                     <button onclick="editInventoryItem(${item.id})" class="btn btn-sm btn-outline">
                         <i class="fas fa-edit"></i> ${t('common.edit')}
                     </button>
                     <button onclick="deleteInventoryItem(${item.id})" class="btn btn-sm btn-danger">
                         <i class="fas fa-trash"></i> ${t('common.delete')}
                     </button>
-                </td>
+                `;
+            }
+            row.innerHTML = `
+                <td>${item.naam}</td>
+                <td>${item.aantal}</td>
+                <td>${item.locatie || '-'}</td>
+                <td>${item.keuringsdatum || '-'}</td>
+                <td>${item.beschrijving || '-'}</td>
+                <td>${actions}</td>
             `;
             tbody.appendChild(row);
         });
@@ -588,16 +710,35 @@ async function deleteInventoryItem(id) {
 }
 
 // Orders Management
-async function loadOrders() {
+async function loadOrders(searchQuery = '', statusFilter = '') {
     try {
-        const response = await apiCall('orders.php');
+        let url = 'orders.php';
+        const params = [];
+        if (searchQuery) params.push(`search=${encodeURIComponent(searchQuery)}`);
+        if (statusFilter) params.push(`status=${encodeURIComponent(statusFilter)}`);
+        if (params.length) url += '?' + params.join('&');
+
+        const response = await apiCall(url);
         const tbody = document.querySelector('#ordersTable tbody');
         tbody.innerHTML = '';
-        
+
         response.data?.forEach(order => {
             const row = document.createElement('tr');
             const statusClass = `status-${order.status}`;
-            
+
+            let actions = `
+                <button onclick="editOrder(${order.id})" class="btn btn-sm btn-outline">
+                    <i class="fas fa-edit"></i> ${t('common.edit')}
+                </button>
+            `;
+            if (isAdmin()) {
+                actions += `
+                    <button onclick="deleteOrder(${order.id})" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> ${t('common.delete')}
+                    </button>
+                `;
+            }
+
             row.innerHTML = `
                 <td>${order.leerlingnr}</td>
                 <td>${order.naam}</td>
@@ -605,14 +746,7 @@ async function loadOrders() {
                 <td><span class="status-badge ${statusClass}">${t('orders.status' + order.status.charAt(0).toUpperCase() + order.status.slice(1))}</span></td>
                 <td>${order.datum}</td>
                 <td>${order.opmerkingen || '-'}</td>
-                <td>
-                    <button onclick="editOrder(${order.id})" class="btn btn-sm btn-outline">
-                        <i class="fas fa-edit"></i> ${t('common.edit')}
-                    </button>
-                    <button onclick="deleteOrder(${order.id})" class="btn btn-sm btn-danger">
-                        <i class="fas fa-trash"></i> ${t('common.delete')}
-                    </button>
-                </td>
+                <td>${actions}</td>
             `;
             tbody.appendChild(row);
         });
@@ -667,15 +801,34 @@ async function deleteOrder(id) {
 }
 
 // Returns Management
-async function loadReturns() {
+async function loadReturns(searchQuery = '', conditionFilter = '') {
     try {
-        const response = await apiCall('returns.php');
+        let url = 'returns.php';
+        const params = [];
+        if (searchQuery) params.push(`search=${encodeURIComponent(searchQuery)}`);
+        if (conditionFilter) params.push(`conditie=${encodeURIComponent(conditionFilter)}`);
+        if (params.length) url += '?' + params.join('&');
+
+        const response = await apiCall(url);
         const tbody = document.querySelector('#returnsTable tbody');
         tbody.innerHTML = '';
-        
+
         response.data?.forEach(returnItem => {
             const row = document.createElement('tr');
-            
+
+            let actions = `
+                <button onclick="editReturn(${returnItem.id})" class="btn btn-sm btn-outline">
+                    <i class="fas fa-edit"></i> ${t('common.edit')}
+                </button>
+            `;
+            if (isAdmin()) {
+                actions += `
+                    <button onclick="deleteReturn(${returnItem.id})" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> ${t('common.delete')}
+                    </button>
+                `;
+            }
+
             row.innerHTML = `
                 <td>${returnItem.artikel}</td>
                 <td>${returnItem.leerlingnr}</td>
@@ -683,19 +836,139 @@ async function loadReturns() {
                 <td>${returnItem.inleverdatum}</td>
                 <td>${t('returns.condition' + returnItem.conditie.charAt(0).toUpperCase() + returnItem.conditie.slice(1))}</td>
                 <td>${returnItem.opmerkingen || '-'}</td>
-                <td>
-                    <button onclick="editReturn(${returnItem.id})" class="btn btn-sm btn-outline">
-                        <i class="fas fa-edit"></i> ${t('common.edit')}
-                    </button>
-                    <button onclick="deleteReturn(${returnItem.id})" class="btn btn-sm btn-danger">
-                        <i class="fas fa-trash"></i> ${t('common.delete')}
-                    </button>
-                </td>
+                <td>${actions}</td>
             `;
             tbody.appendChild(row);
         });
     } catch (error) {
         console.error('Failed to load returns:', error);
+    }
+}
+
+// Users Management (Admin Only)
+let allUsers = [];
+
+async function loadUsers() {
+    try {
+        console.log('Loading users...');
+        const response = await apiCall('users.php');
+        console.log('Users API response:', response);
+        allUsers = response.data || [];
+        console.log('All users:', allUsers);
+        displayUsers(allUsers);
+
+        // Add search input if not present
+        let searchContainer = document.querySelector('#usersSearchContainer');
+        if (!searchContainer) {
+            searchContainer = document.createElement('div');
+            searchContainer.id = 'usersSearchContainer';
+            searchContainer.className = 'search-container';
+            searchContainer.innerHTML = `
+                <input type="text" id="usersSearch" placeholder="${t('common.search')}..." class="form-control">
+            `;
+            const table = document.querySelector('#usersTable');
+            if (table) {
+                table.parentNode.insertBefore(searchContainer, table);
+                document.getElementById('usersSearch').addEventListener('input', filterUsers);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load users:', error);
+        showToast('Failed to load users: ' + error.message, 'error');
+    }
+}
+
+// Filter users based on search input
+function filterUsers() {
+    const searchTerm = document.getElementById('usersSearch').value.toLowerCase();
+    const filteredUsers = allUsers.filter(user => {
+        return user.username.toLowerCase().includes(searchTerm) || user.role.toLowerCase().includes(searchTerm);
+    });
+    displayUsers(filteredUsers);
+}
+
+function displayUsers(users) {
+    console.log('Displaying users:', users.length);
+    const tbody = document.querySelector('#usersTable tbody');
+    console.log('Users table tbody:', tbody);
+
+    if (!tbody) {
+        console.error('Users table tbody not found!');
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    users.forEach(user => {
+        console.log('Creating row for user:', user.username);
+        const row = document.createElement('tr');
+        const roleClass = user.role === 'admin' ? 'status-approved' : 'status-pending';
+
+        row.innerHTML = `
+            <td>${user.username}</td>
+            <td><span class="status-badge ${roleClass}">${user.role}</span></td>
+            <td>
+                <select onchange="changeUserRole(${user.id}, this.value)">
+                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+                <button onclick="deleteUser(${user.id})" class="btn btn-sm btn-danger" style="margin-left: 10px;">
+                    <i class="fas fa-trash"></i> ${t('common.delete')}
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    console.log('Users table rows created:', tbody.children.length);
+
+    // Check if usersPage is visible
+    const usersPage = document.getElementById('usersPage');
+    console.log('Users page element:', usersPage);
+    console.log('Users page classList:', usersPage ? usersPage.classList : 'null');
+    console.log('Users page display style:', usersPage ? getComputedStyle(usersPage).display : 'null');
+
+    // Check table visibility
+    const usersTable = document.getElementById('usersTable');
+    console.log('Users table element:', usersTable);
+    console.log('Users table display style:', usersTable ? getComputedStyle(usersTable).display : 'null');
+}
+
+function filterUsers() {
+    const searchTerm = document.getElementById('usersSearch').value.toLowerCase();
+    const filteredUsers = allUsers.filter(user => user.username.toLowerCase().includes(searchTerm));
+    displayUsers(filteredUsers);
+}
+
+async function changeUserRole(userId, newRole) {
+    try {
+        await apiCall('users.php', {
+            method: 'PUT',
+            body: JSON.stringify({ id: userId, role: newRole })
+        });
+
+        showToast('User role updated successfully', 'success');
+        loadUsers();
+    } catch (error) {
+        console.error('Failed to update user role:', error);
+        showToast('Failed to update user role', 'error');
+    }
+}
+
+async function deleteUser(userId) {
+    if (confirm(t('messages.confirmDelete'))) {
+        try {
+            await apiCall('users.php', {
+                method: 'DELETE',
+                body: JSON.stringify({ id: userId })
+            });
+
+            showToast('User deleted successfully', 'success');
+            loadUsers();
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            showToast('Failed to delete user', 'error');
+        }
     }
 }
 
@@ -971,8 +1244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = document.getElementById('regUsername').value;
         const password = document.getElementById('regPassword').value;
         const confirmPassword = document.getElementById('regConfirmPassword').value;
-        const role = document.getElementById('regRole').value;
-        await register(username, password, confirmPassword, role);
+        await register(username, password, confirmPassword);
     });
     
     // Form handlers
@@ -999,6 +1271,70 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Search Functions
+function initOrderSearch() {
+    const searchInput = document.getElementById('orderSearch');
+    const statusFilter = document.getElementById('orderStatusFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            const searchQuery = searchInput.value.trim();
+            const statusFilterValue = statusFilter ? statusFilter.value : '';
+            loadOrders(searchQuery, statusFilterValue);
+        }, 300));
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            const searchQuery = searchInput ? searchInput.value.trim() : '';
+            const statusFilterValue = statusFilter.value;
+            loadOrders(searchQuery, statusFilterValue);
+        });
+    }
+}
+
+function initReturnSearch() {
+    const searchInput = document.getElementById('returnSearch');
+    const conditionFilter = document.getElementById('returnConditionFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            const searchQuery = searchInput.value.trim();
+            const conditionFilterValue = conditionFilter ? conditionFilter.value : '';
+            loadReturns(searchQuery, conditionFilterValue);
+        }, 300));
+    }
+
+    if (conditionFilter) {
+        conditionFilter.addEventListener('change', () => {
+            const searchQuery = searchInput ? searchInput.value.trim() : '';
+            const conditionFilterValue = conditionFilter.value;
+            loadReturns(searchQuery, conditionFilterValue);
+        });
+    }
+}
+
+// Utility function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showAddReturnModal() {
+    document.getElementById('returnModalTitle').textContent = t('returns.addReturn');
+    document.getElementById('returnForm').reset();
+    document.getElementById('returnId').value = '';
+    document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('returnModal').style.display = 'block';
+}
+
 // Make functions globally available
 window.showPage = showPage;
 window.refreshCurrentPage = refreshCurrentPage;
@@ -1016,3 +1352,8 @@ window.toggleTheme = toggleTheme;
 window.setLanguage = setLanguage;
 window.toggleAuthForm = toggleAuthForm;
 window.logout = logout;
+window.loadUsers = loadUsers;
+window.changeUserRole = changeUserRole;
+window.deleteUser = deleteUser;
+window.displayUsers = displayUsers;
+window.filterUsers = filterUsers;

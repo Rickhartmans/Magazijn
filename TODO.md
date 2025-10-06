@@ -1,0 +1,11 @@
+- [x] Remove debug echo and exit statements from login.php
+- [x] Clean up register.php: remove debug statements and duplicate code
+- [x] Update JWT_SECRET in config.php to a secure value
+- [x] Verify database connection and user table exists
+- [x] Check frontend code in magazijn.js for correct API calls
+- [x] Implement admin user management with list, role change, delete, and search functionality
+- [ ] Implement password reset functionality (email-based reset flow)
+- [ ] Add audit logging for user actions (login, CRUD operations)
+- [ ] Add export functionality (CSV/PDF) for orders, returns, inventory
+- [ ] Enhance error handling and validation on backend and frontend
+- [ ] Perform thorough testing of all features including edge cases and security scenarios

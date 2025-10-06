@@ -334,8 +334,66 @@ body {
     color: var(--text-secondary);
 }
 
+.data-table tbody tr:nth-child(odd) {
+    background-color: var(--bg-primary);
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: var(--bg-tertiary);
+}
+
 .data-table tbody tr:hover {
-    background: var(--bg-tertiary);
+    background: var(--primary-hover);
+    color: white;
+    cursor: pointer;
+}
+
+/* Users page specific styles */
+#usersPage .data-table tbody tr td select {
+    padding: 6px 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+#usersPage .data-table tbody tr td select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+}
+
+#usersPage .data-table tbody tr td select:hover {
+    border-color: var(--primary-hover);
+}
+
+#usersPage .data-table tbody tr td button {
+    margin-left: 10px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Users page search container */
+#usersSearchContainer {
+    margin-bottom: 12px;
+}
+
+#usersSearchContainer input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+#usersSearchContainer input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
 }
 
 /* Forms */
