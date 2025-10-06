@@ -49,4 +49,3 @@ if ($user['role'] === 'admin') {
 }
 
 sendResponse(true, $stats);
-?>

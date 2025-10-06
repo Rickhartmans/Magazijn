@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'vista_magazijn');
-define('DB_USER', 'root'); // Change this to your MySQL username
+define('DB_USER', 'rick_hartmans'); // Change this to your MySQL username
 define('DB_PASS', 'blokxvip8!'); // Change this to your MySQL password
 
 // JWT Secret Key
@@ -58,4 +58,3 @@ function sendResponse($success, $data = null, $message = '', $code = 200) {
 function getRequestBody() {
     return json_decode(file_get_contents('php://input'), true);
 }
-?>

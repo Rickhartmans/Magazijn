@@ -108,5 +108,4 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     default:
         sendResponse(false, null, 'Method not allowed', 405);
-}
-?>
+    }

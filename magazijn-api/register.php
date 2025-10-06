@@ -40,4 +40,3 @@ sendResponse(true, [
     'token' => $token,
     'user' => $user
 ], 'Registration successful');
-?>

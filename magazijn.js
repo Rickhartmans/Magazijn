@@ -3,7 +3,7 @@
 
 // Configuration
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:8000/magazijn-api',
+    API_BASE_URL: 'https://magazijn.rickhartmans.nl/magazijn-api',
     STORAGE_KEYS: {
         TOKEN: 'vista_token',
         USER: 'vista_user',
@@ -361,9 +361,12 @@ async function register(username, password, confirmPassword) {
             return;
         }
 
+        // Default role to 'user' for registration
+        const role = 'user';
+
         const response = await apiCall('register.php', {
             method: 'POST',
-            body: JSON.stringify({ username, password, confirmPassword })
+            body: JSON.stringify({ username, password, confirmPassword, role })
         });
 
         if (response.success) {

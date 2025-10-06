@@ -59,5 +59,4 @@ switch ($method) {
 
     default:
         sendResponse(false, null, 'Method not allowed', 405);
-}
-?>
+    }

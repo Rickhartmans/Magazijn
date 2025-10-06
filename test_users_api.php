@@ -32,5 +32,4 @@ foreach ($testUsers as $test) {
     } else {
         echo "Login failed for user: " . $test['username'] . " with password: " . $test['password'] . "\n";
     }
-}
-?>
+    }

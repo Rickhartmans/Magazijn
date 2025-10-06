@@ -1,28 +1,28 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// Simple test script to test login and registration APIs
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
+function postRequest($url, $data) {
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => json_encode($data),
+            'ignore_errors' => true
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    return $result;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    echo json_encode([
-        'success' => true,
-        'method' => 'POST',
-        'input' => $input,
-        'server_method' => $_SERVER['REQUEST_METHOD']
-    ]);
-} else {
-    http_response_code(405);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Method not allowed',
-        'server_method' => $_SERVER['REQUEST_METHOD']
-    ]);
-}
-?>
+$baseUrl = 'https://magazijn.rickhartmans.nl/magazijn-api/';
+
+echo "Testing Login API...\n";
+$loginData = ['username' => 'testuser', 'password' => 'testpass'];
+$loginResponse = postRequest($baseUrl . 'login.php', $loginData);
+echo "Login Response: " . $loginResponse . "\n\n";
+
+echo "Testing Register API...\n";
+$registerData = ['username' => 'newuser', 'password' => 'newpass', 'confirmPassword' => 'newpass', 'role' => 'user'];
+$registerResponse = postRequest($baseUrl . 'register.php', $registerData);
+echo "Register Response: " . $registerResponse . "\n\n";

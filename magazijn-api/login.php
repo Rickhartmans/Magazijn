@@ -27,4 +27,3 @@ sendResponse(true, [
         'role' => $user['role']
     ]
 ], 'Login successful');
-?>

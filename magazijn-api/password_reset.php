@@ -36,4 +36,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     sendResponse(false, null, 'Method not allowed', 405);
 }
-?>
