@@ -2,23 +2,37 @@
 require_once 'auth.php';
 
 $user = requireAuth();
-requireAdmin();
 
-$method = $_SERVER['REQUEST_METHOD'];
+// Only admins can manage users
+if ($user['role'] !== 'admin') {
+    sendResponse(false, null, 'Admin access required', 403);
+}
 
-switch ($method) {
+$pdo = getDBConnection();
+
+switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
-        // Get all users with optional search
-        $pdo = getDBConnection();
-        $search = isset($_GET['search']) ? $_GET['search'] : '';
-        if ($search) {
-            $stmt = $pdo->prepare("SELECT id, username, role FROM users WHERE username LIKE ? ORDER BY id");
-            $stmt->execute(['%' . $search . '%']);
-        } else {
-            $stmt = $pdo->query("SELECT id, username, role FROM users ORDER BY id");
-        }
+        // Get all users
+        $stmt = $pdo->query("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC");
         $users = $stmt->fetchAll();
         sendResponse(true, $users);
+        break;
+
+    case 'POST':
+        // Create new user
+        $input = getRequestBody();
+        if (!isset($input['username']) || !isset($input['password'])) {
+            sendResponse(false, null, 'Username and password are required', 400);
+        }
+
+        $role = $input['role'] ?? 'user';
+        $userId = createUser($input['username'], $input['password'], $role);
+
+        if (!$userId) {
+            sendResponse(false, null, 'Username already exists', 409);
+        }
+
+        sendResponse(true, ['id' => $userId], 'User created successfully');
         break;
 
     case 'PUT':
@@ -28,15 +42,14 @@ switch ($method) {
             sendResponse(false, null, 'User ID and role are required', 400);
         }
 
-        $pdo = getDBConnection();
+        // Prevent changing own role
+        if ($input['id'] == $user['id']) {
+            sendResponse(false, null, 'Cannot change your own role', 403);
+        }
+
         $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
         $stmt->execute([$input['role'], $input['id']]);
-
-        if ($stmt->rowCount() > 0) {
-            sendResponse(true, null, 'User role updated successfully');
-        } else {
-            sendResponse(false, null, 'User not found', 404);
-        }
+        sendResponse(true, null, 'User role updated successfully');
         break;
 
     case 'DELETE':
@@ -46,17 +59,16 @@ switch ($method) {
             sendResponse(false, null, 'User ID is required', 400);
         }
 
-        $pdo = getDBConnection();
+        // Prevent deleting own account
+        if ($input['id'] == $user['id']) {
+            sendResponse(false, null, 'Cannot delete your own account', 403);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$input['id']]);
-
-        if ($stmt->rowCount() > 0) {
-            sendResponse(true, null, 'User deleted successfully');
-        } else {
-            sendResponse(false, null, 'User not found', 404);
-        }
+        sendResponse(true, null, 'User deleted successfully');
         break;
 
     default:
         sendResponse(false, null, 'Method not allowed', 405);
-    }
+}

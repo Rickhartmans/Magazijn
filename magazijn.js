@@ -307,7 +307,15 @@ async function apiCall(endpoint, options = {}) {
         }
     };
     
-    const finalOptions = { ...defaultOptions, ...options };
+    // Merge headers so Authorization isn't lost when caller provides headers
+    const finalOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...(options.headers || {})
+        }
+    };
     
     try {
         showLoading();
@@ -421,15 +429,15 @@ function showDashboard() {
 
     // Add users menu item for admins
     if (isAdmin()) {
-        let usersMenuItem = document.querySelector('.menu-item[data-page="users"]');
+        // Only add it once and match the existing markup (li > a.menu-item)
+        let usersMenuItem = document.querySelector('.sidebar-menu a.menu-item[data-page="users"]');
         if (!usersMenuItem) {
             const menuContainer = document.querySelector('.sidebar-menu');
             if (menuContainer) {
-                usersMenuItem = document.createElement('li');
-                usersMenuItem.className = 'menu-item';
-                usersMenuItem.setAttribute('data-page', 'users');
-
+                const li = document.createElement('li');
                 const link = document.createElement('a');
+                link.className = 'menu-item';
+                link.setAttribute('data-page', 'users');
                 link.href = '#';
                 link.onclick = () => showPage('users');
                 link.innerHTML = `
@@ -437,8 +445,8 @@ function showDashboard() {
                     <span data-i18n="menu.users">Users</span>
                 `;
 
-                usersMenuItem.appendChild(link);
-                menuContainer.appendChild(usersMenuItem);
+                li.appendChild(link);
+                menuContainer.appendChild(li);
             }
         }
     }
@@ -558,16 +566,11 @@ function createUsersPage() {
 
 // Page Navigation
 function showPage(pageName) {
-    // Update active menu item
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // Find the menu item that was clicked
-    let menuItem = event.target.closest('.menu-item');
-    if (menuItem) {
-        menuItem.classList.add('active');
-    }
+    // Update active menu item (don't rely on a click event here)
+    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+    // Try to find a menu anchor with a matching data-page or onclick attribute
+    let menuItem = document.querySelector(`.menu-item[data-page="${pageName}"]`) || document.querySelector(`.menu-item[onclick*="showPage('${pageName}')"]`);
+    if (menuItem) menuItem.classList.add('active');
 
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {
@@ -939,7 +942,9 @@ function displayUsers(users) {
 
 function filterUsers() {
     const searchTerm = document.getElementById('usersSearch').value.toLowerCase();
-    const filteredUsers = allUsers.filter(user => user.username.toLowerCase().includes(searchTerm));
+    const filteredUsers = allUsers.filter(user => {
+        return user.username.toLowerCase().includes(searchTerm) || user.role.toLowerCase().includes(searchTerm);
+    });
     displayUsers(filteredUsers);
 }
 
@@ -975,13 +980,7 @@ async function deleteUser(userId) {
     }
 }
 
-function showAddReturnModal() {
-    document.getElementById('returnModalTitle').textContent = t('returns.addReturn');
-    document.getElementById('returnForm').reset();
-    document.getElementById('returnId').value = '';
-    document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('returnModal').style.display = 'block';
-}
+// showAddReturnModal is defined earlier; keep the single implementation above.
 
 async function editReturn(id) {
     try {
