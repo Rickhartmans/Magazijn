@@ -13,14 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit(0);
 }
 
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'magazijn.rickhartmans_nl_');
-define('DB_USER', 'rick_hartmans'); // Change this to your MySQL username
-define('DB_PASS', 'blokxvip8!'); // Change this to your MySQL password
+// Database configuration (env-friendly)
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('DB_NAME') ?: 'vista_magazijn');
+define('DB_USER', getenv('DB_USER') ?: 'root'); // Change this to your MySQL username
+define('DB_PASS', getenv('DB_PASS') ?: 'blokxvip8!'); // Change this to your MySQL password
 
 // JWT Secret Key
-define('JWT_SECRET', 'secure-jwt-secret-key-for-vista-magazijn-api');
+define('JWT_SECRET', getenv('JWT_SECRET') ?: 'secure-jwt-secret-key-for-vista-magazijn-api');
 
 // Connect to database
 function getDBConnection() {
