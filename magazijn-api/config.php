@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'vista_magazijn');
+define('DB_NAME', 'magazijn.rickhartmans_nl_');
 define('DB_USER', 'rick_hartmans'); // Change this to your MySQL username
 define('DB_PASS', 'blokxvip8!'); // Change this to your MySQL password
 

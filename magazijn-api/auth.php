@@ -89,9 +89,38 @@ function generateToken($user) {
 }
 
 function validateToken() {
-    $headers = getallheaders();
-    $auth_header = isset($headers['Authorization']) ? $headers['Authorization'] : '';
+    $auth_header = '';
 
+    // Try getallheaders() where available (Apache)
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (!empty($headers['Authorization'])) {
+            $auth_header = $headers['Authorization'];
+        } elseif (!empty($headers['authorization'])) {
+            $auth_header = $headers['authorization'];
+        }
+    }
+
+    // Common $_SERVER locations (PHP-FPM + nginx)
+    if (empty($auth_header)) {
+        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
+        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $auth_header = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+    }
+
+    // apache_request_headers fallback
+    if (empty($auth_header) && function_exists('apache_request_headers')) {
+        $arh = apache_request_headers();
+        if (!empty($arh['Authorization'])) {
+            $auth_header = $arh['Authorization'];
+        } elseif (!empty($arh['authorization'])) {
+            $auth_header = $arh['authorization'];
+        }
+    }
+
+    // Final check for Bearer token
     if (empty($auth_header) || !preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
         return false;
     }
