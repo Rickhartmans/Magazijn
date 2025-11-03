@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vista Magazijn Uitleen</title>
+    <title>Vista Warehouse Lending</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -12,181 +12,126 @@
     <div id="loginScreen" class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <h1><i class="fas fa-warehouse"></i> Vista Magazijn Uitleen</h1>
-                <p data-i18n="login.subtitle">Warehouse Management System</p>
+                <h1><i class="fas fa-warehouse"></i> Vista Warehouse Lending</h1>
+                <p>Warehouse Management System</p>
             </div>
-            <!-- Login Form -->
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
-                    <label for="username" data-i18n="login.username">Username</label>
+                    <label for="username">Username</label>
                     <input type="text" id="username" name="username" required>
                 </div>
                 <div class="form-group">
-                    <label for="password" data-i18n="login.password">Password</label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary" data-i18n="login.submit">Login</button>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p class="auth-toggle-text" id="authToggleText">
+                    <span>Don't have an account?</span>
+                    <button type="button" id="showRegisterBtn" class="link-btn" onclick="toggleAuthForm()">Register</button>
+                </p>
                 <div id="loginError" class="error-message"></div>
             </form>
 
-            <!-- Register Form -->
             <form id="registerForm" class="auth-form" style="display: none;">
                 <div class="form-group">
-                    <label for="regUsername" data-i18n="register.username">Username</label>
-                    <input type="text" id="regUsername" name="username" required minlength="3">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" name="regUsername" required>
                 </div>
                 <div class="form-group">
-                    <label for="regPassword" data-i18n="register.password">Password</label>
-                    <input type="password" id="regPassword" name="password" required minlength="6">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" name="regPassword" required>
                 </div>
                 <div class="form-group">
-                    <label for="regConfirmPassword" data-i18n="register.confirmPassword">Confirm Password</label>
-                    <input type="password" id="regConfirmPassword" name="confirmPassword" required minlength="6">
+                    <label for="regConfirmPassword">Confirm Password</label>
+                    <input type="password" id="regConfirmPassword" name="regConfirmPassword" required>
                 </div>
-                <div class="form-group">
-                    <label for="regRole" data-i18n="register.role">Role</label>
-                    <select id="regRole" name="role">
-                        <option value="user" data-i18n="register.roleUser">User</option>
-                        <option value="admin" data-i18n="register.roleAdmin">Admin</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary" data-i18n="register.submit">Register</button>
+                <button type="submit" class="btn btn-primary">Register</button>
+                <p class="auth-toggle-text">
+                    <span>Already have an account?</span>
+                    <button type="button" class="link-btn" onclick="toggleAuthForm()">Login here</button>
+                </p>
                 <div id="registerError" class="error-message"></div>
             </form>
-
-            <!-- Auth Toggle -->
-            <div class="auth-toggle">
-                <p id="authToggleText">
-                    <span data-i18n="login.noAccount">Don't have an account?</span>
-                    <button type="button" id="showRegisterBtn" class="link-btn" onclick="toggleAuthForm()" data-i18n="login.register">Register</button>
-                </p>
-            </div>
-            <div class="login-footer">
-                <div class="language-switcher">
-                    <button onclick="setLanguage('nl')" class="lang-btn">NL</button>
-                    <button onclick="setLanguage('en')" class="lang-btn">EN</button>
-                </div>
-                <div class="theme-switcher">
-                    <button id="themeToggle" onclick="toggleTheme()">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <div id="dashboard" class="dashboard" style="display: none;">
-        <!-- Sidebar -->
-        <nav class="sidebar">
+    <!-- Dashboard/Main Application Screen -->
+    <div id="dashboard" class="dashboard-container" style="display: none;">
+        <aside class="sidebar">
             <div class="sidebar-header">
-                <h2><i class="fas fa-warehouse"></i> Vista Magazijn</h2>
-                <div class="user-info">
-                    <span id="userWelcome" data-i18n="dashboard.welcome">Welcome</span>
-                    <span id="currentUser"></span>
-                </div>
+                <h3>Warehouse App</h3>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" onclick="showPage('dashboard')" class="menu-item active">
-                    <i class="fas fa-tachometer-alt"></i> <span data-i18n="menu.dashboard">Dashboard</span>
-                </a></li>
-                <li><a href="#" onclick="showPage('inventory')" class="menu-item">
-                    <i class="fas fa-boxes"></i> <span data-i18n="menu.inventory">Inventory</span>
-                </a></li>
-                <li><a href="#" onclick="showPage('orders')" class="menu-item">
-                    <i class="fas fa-shopping-cart"></i> <span data-i18n="menu.orders">Orders</span>
-                </a></li>
-                <li><a href="#" onclick="showPage('returns')" class="menu-item">
-                    <i class="fas fa-undo"></i> <span data-i18n="menu.returns">Returns</span>
-                </a></li>
-                <li><a href="#" onclick="showPage('qrscan')" class="menu-item">
-                    <i class="fas fa-qrcode"></i> <span data-i18n="menu.qrscan">QR Scan</span>
-                </a></li>
-            </ul>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li><a href="#" class="menu-item active" data-page="dashboard" onclick="showPage('dashboard')"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                    <li><a href="#" class="menu-item" data-page="inventory" onclick="showPage('inventory')"><i class="fas fa-boxes"></i> <span>Inventory</span></a></li>
+                    <li><a href="#" class="menu-item" data-page="orders" onclick="showPage('orders')"><i class="fas fa-shopping-cart"></i> <span>Orders</span></a></li>
+                    <li><a href="#" class="menu-item" data-page="returns" onclick="showPage('returns')"><i class="fas fa-undo"></i> <span>Returns</span></a></li>
+                    <!-- Users menu item will be dynamically added for admin -->
+                    <li><a href="#" class="menu-item" data-page="qrscan" onclick="showPage('qrscan')"><i class="fas fa-qrcode"></i> <span>QR Scan</span></a></li>
+                </ul>
+            </nav>
             <div class="sidebar-footer">
-                <div class="controls">
-                    <div class="language-switcher">
-                        <button onclick="setLanguage('nl')" class="lang-btn">NL</button>
-                        <button onclick="setLanguage('en')" class="lang-btn">EN</button>
-                    </div>
-                    <button id="dashboardThemeToggle" onclick="toggleTheme()" class="theme-btn">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-                <button onclick="logout()" class="btn btn-secondary">
-                    <i class="fas fa-sign-out-alt"></i> <span data-i18n="dashboard.logout">Logout</span>
-                </button>
+                <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
-        </nav>
+        </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <header class="content-header">
-                <h1 id="pageTitle" data-i18n="dashboard.title">Dashboard</h1>
+            <header class="main-header">
+                <h2 id="pageTitle">Dashboard</h2>
                 <div class="header-actions">
-                    <button id="refreshBtn" onclick="refreshCurrentPage()" class="btn btn-outline">
-                        <i class="fas fa-sync-alt"></i> <span data-i18n="common.refresh">Refresh</span>
-                    </button>
+                    <span id="currentUser"></span>
+                    <button id="dashboardThemeToggle" class="btn btn-icon" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+                    <button class="btn btn-icon" onclick="refreshCurrentPage()"><i class="fas fa-sync"></i></button>
                 </div>
             </header>
 
-            <!-- Dashboard Page -->
-            <div id="dashboardPage" class="page active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-boxes"></i></div>
-                        <div class="stat-info">
-                            <h3 id="totalItems">0</h3>
-                            <p data-i18n="dashboard.totalItems">Total Items</p>
-                        </div>
+            <div class="page active" id="dashboardPage">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Total Items</h3>
+                        <p id="totalItems">0</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
-                        <div class="stat-info">
-                            <h3 id="pendingOrders">0</h3>
-                            <p data-i18n="dashboard.pendingOrders">Pending Orders</p>
-                        </div>
+                    <div class="card">
+                        <h3>Pending Orders</h3>
+                        <p id="pendingOrders">0</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-undo"></i></div>
-                        <div class="stat-info">
-                            <h3 id="recentReturns">0</h3>
-                            <p data-i18n="dashboard.recentReturns">Recent Returns</p>
-                        </div>
+                    <div class="card">
+                        <h3>Recent Returns</h3>
+                        <p id="recentReturns">0</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="stat-info">
-                            <h3 id="lowStock">0</h3>
-                            <p data-i18n="dashboard.lowStock">Low Stock Items</p>
-                        </div>
+                    <div class="card">
+                        <h3>Low Stock Items</h3>
+                        <p id="lowStock">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Total Users</h3>
+                        <p id="totalUsers">0</p>
                     </div>
                 </div>
-                <div class="recent-activity">
-                    <h2 data-i18n="dashboard.recentActivity">Recent Activity</h2>
-                    <div id="recentActivityList" class="activity-list">
+                <div class="card recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div id="recentActivityList">
                         <!-- Activity items will be loaded here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Inventory Page -->
-            <div id="inventoryPage" class="page">
-                <div class="page-actions">
-                    <button onclick="showAddInventoryModal()" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> <span data-i18n="inventory.addItem">Add Item</span>
-                    </button>
+            <div class="page" id="inventoryPage">
+                <div class="page-header">
+                    <h2>Inventory</h2>
+                    <button class="btn btn-primary" onclick="showAddInventoryModal()">Add Item</button>
                 </div>
-                <div class="table-container">
+                <div class="page-content">
                     <table id="inventoryTable" class="data-table">
                         <thead>
                             <tr>
-                                <th data-i18n="inventory.name">Name</th>
-                                <th data-i18n="inventory.quantity">Quantity</th>
-                                <th data-i18n="inventory.location">Location</th>
-                                <th data-i18n="inventory.inspectionDate">Inspection Date</th>
-                                <th data-i18n="inventory.description">Description</th>
-                                <th data-i18n="common.actions">Actions</th>
+                                <th>Name</th>
+                                <th>Quantity</th>
+                                <th>Location</th>
+                                <th>Inspection Date</th>
+                                <th>Description</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -196,209 +141,216 @@
                 </div>
             </div>
 
-            <!-- Orders Page -->
-            <div id="ordersPage" class="page">
-                <div class="page-actions">
-                    <button onclick="showAddOrderModal()" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> <span data-i18n="orders.addOrder">Add Order</span>
-                    </button>
+            <div class="page" id="ordersPage">
+                <div class="page-header">
+                    <h2>Orders</h2>
+                    <button class="btn btn-primary" onclick="showAddOrderModal()">Add Order</button>
                 </div>
-                <div class="table-container">
+                <div class="page-content">
+                    <div class="search-filter-container">
+                        <input type="text" id="orderSearch" placeholder="Search orders..." class="form-control">
+                        <select id="orderStatusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
                     <table id="ordersTable" class="data-table">
                         <thead>
                             <tr>
-                                <th data-i18n="orders.studentNumber">Student Number</th>
-                                <th data-i18n="orders.name">Name</th>
-                                <th data-i18n="orders.article">Article</th>
-                                <th data-i18n="orders.status">Status</th>
-                                <th data-i18n="orders.date">Date</th>
-                                <th data-i18n="orders.comments">Comments</th>
-                                <th data-i18n="common.actions">Actions</th>
+                                <th>Student Number</th>
+                                <th>Name</th>
+                                <th>Article</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Comments</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Orders will be loaded here -->
+                            <!-- Order items will be loaded here -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Returns Page -->
-            <div id="returnsPage" class="page">
-                <div class="page-actions">
-                    <button onclick="showAddReturnModal()" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> <span data-i18n="returns.addReturn">Add Return</span>
-                    </button>
+            <div class="page" id="returnsPage">
+                <div class="page-header">
+                    <h2>Returns</h2>
+                    <button class="btn btn-primary" onclick="showAddReturnModal()">Add Return</button>
                 </div>
-                <div class="table-container">
+                <div class="page-content">
+                    <div class="search-filter-container">
+                        <input type="text" id="returnSearch" placeholder="Search returns..." class="form-control">
+                        <select id="returnConditionFilter" class="form-control">
+                            <option value="">All Conditions</option>
+                            <option value="good">Good</option>
+                            <option value="damaged">Damaged</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
                     <table id="returnsTable" class="data-table">
                         <thead>
                             <tr>
-                                <th data-i18n="returns.article">Article</th>
-                                <th data-i18n="returns.studentNumber">Student Number</th>
-                                <th data-i18n="returns.name">Name</th>
-                                <th data-i18n="returns.returnDate">Return Date</th>
-                                <th data-i18n="returns.condition">Condition</th>
-                                <th data-i18n="returns.comments">Comments</th>
-                                <th data-i18n="common.actions">Actions</th>
+                                <th>Article</th>
+                                <th>Student Number</th>
+                                <th>Name</th>
+                                <th>Return Date</th>
+                                <th>Condition</th>
+                                <th>Comments</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Returns will be loaded here -->
+                            <!-- Return items will be loaded here -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- QR Scan Page -->
-            <div id="qrscanPage" class="page">
-                <div class="qr-scanner-container">
-                    <h2 data-i18n="qrscan.title">QR Code Scanner</h2>
-                    <div class="scanner-placeholder">
-                        <i class="fas fa-qrcode"></i>
-                        <p data-i18n="qrscan.placeholder">QR Scanner will be implemented here</p>
-                        <p data-i18n="qrscan.description">This feature will allow scanning QR codes for quick item lookup</p>
-                    </div>
+            <div class="page" id="qrscanPage">
+                <div class="page-header">
+                    <h2>QR Code Scanner</h2>
+                </div>
+                <div class="page-content">
+                    <p>QR Scanner will be implemented here</p>
+                    <p>This feature will allow scanning QR codes for quick item lookup</p>
                 </div>
             </div>
+
+            <!-- Users page will be dynamically created for admins -->
+
         </main>
     </div>
 
-    <!-- Modals -->
-    <!-- Add/Edit Inventory Modal -->
+    <!-- Modals (Inventory, Order, Return) -->
     <div id="inventoryModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="inventoryModalTitle" data-i18n="inventory.addItem">Add Item</h2>
-                <span class="close" onclick="closeModal('inventoryModal')">&times;</span>
-            </div>
+            <span class="close-button" onclick="closeModal('inventoryModal')">&times;</span>
+            <h3 id="inventoryModalTitle">Add Item</h3>
             <form id="inventoryForm">
                 <input type="hidden" id="inventoryId">
                 <div class="form-group">
-                    <label for="inventoryName" data-i18n="inventory.name">Name</label>
+                    <label for="inventoryName">Name</label>
                     <input type="text" id="inventoryName" required>
                 </div>
                 <div class="form-group">
-                    <label for="inventoryQuantity" data-i18n="inventory.quantity">Quantity</label>
-                    <input type="number" id="inventoryQuantity" required min="0">
+                    <label for="inventoryQuantity">Quantity</label>
+                    <input type="number" id="inventoryQuantity" required>
                 </div>
                 <div class="form-group">
-                    <label for="inventoryLocation" data-i18n="inventory.location">Location</label>
+                    <label for="inventoryLocation">Location</label>
                     <input type="text" id="inventoryLocation">
                 </div>
                 <div class="form-group">
-                    <label for="inventoryInspectionDate" data-i18n="inventory.inspectionDate">Inspection Date</label>
+                    <label for="inventoryInspectionDate">Inspection Date</label>
                     <input type="date" id="inventoryInspectionDate">
                 </div>
                 <div class="form-group">
-                    <label for="inventoryDescription" data-i18n="inventory.description">Description</label>
-                    <textarea id="inventoryDescription" rows="3"></textarea>
+                    <label for="inventoryDescription">Description</label>
+                    <textarea id="inventoryDescription"></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" onclick="closeModal('inventoryModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add/Edit Order Modal -->
     <div id="orderModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="orderModalTitle" data-i18n="orders.addOrder">Add Order</h2>
-                <span class="close" onclick="closeModal('orderModal')">&times;</span>
-            </div>
+            <span class="close-button" onclick="closeModal('orderModal')">&times;</span>
+            <h3 id="orderModalTitle">Add Order</h3>
             <form id="orderForm">
                 <input type="hidden" id="orderId">
                 <div class="form-group">
-                    <label for="orderStudentNumber" data-i18n="orders.studentNumber">Student Number</label>
+                    <label for="orderStudentNumber">Student Number</label>
                     <input type="text" id="orderStudentNumber" required>
                 </div>
                 <div class="form-group">
-                    <label for="orderName" data-i18n="orders.name">Name</label>
+                    <label for="orderName">Name</label>
                     <input type="text" id="orderName" required>
                 </div>
                 <div class="form-group">
-                    <label for="orderArticle" data-i18n="orders.article">Article</label>
+                    <label for="orderArticle">Article</label>
                     <input type="text" id="orderArticle" required>
                 </div>
                 <div class="form-group">
-                    <label for="orderStatus" data-i18n="orders.status">Status</label>
-                    <select id="orderStatus">
-                        <option value="pending" data-i18n="orders.statusPending">Pending</option>
-                        <option value="approved" data-i18n="orders.statusApproved">Approved</option>
-                        <option value="rejected" data-i18n="orders.statusRejected">Rejected</option>
-                        <option value="completed" data-i18n="orders.statusCompleted">Completed</option>
+                    <label for="orderStatus">Status</label>
+                    <select id="orderStatus" required>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="orderDate" data-i18n="orders.date">Date</label>
+                    <label for="orderDate">Date</label>
                     <input type="date" id="orderDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="orderComments" data-i18n="orders.comments">Comments</label>
-                    <textarea id="orderComments" rows="3"></textarea>
+                    <label for="orderComments">Comments</label>
+                    <textarea id="orderComments"></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" onclick="closeModal('orderModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('orderModal')">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add/Edit Return Modal -->
     <div id="returnModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="returnModalTitle" data-i18n="returns.addReturn">Add Return</h2>
-                <span class="close" onclick="closeModal('returnModal')">&times;</span>
-            </div>
+            <span class="close-button" onclick="closeModal('returnModal')">&times;</span>
+            <h3 id="returnModalTitle">Add Return</h3>
             <form id="returnForm">
                 <input type="hidden" id="returnId">
                 <div class="form-group">
-                    <label for="returnArticle" data-i18n="returns.article">Article</label>
+                    <label for="returnArticle">Article</label>
                     <input type="text" id="returnArticle" required>
                 </div>
                 <div class="form-group">
-                    <label for="returnStudentNumber" data-i18n="returns.studentNumber">Student Number</label>
+                    <label for="returnStudentNumber">Student Number</label>
                     <input type="text" id="returnStudentNumber" required>
                 </div>
                 <div class="form-group">
-                    <label for="returnName" data-i18n="returns.name">Name</label>
+                    <label for="returnName">Name</label>
                     <input type="text" id="returnName" required>
                 </div>
                 <div class="form-group">
-                    <label for="returnDate" data-i18n="returns.returnDate">Return Date</label>
+                    <label for="returnDate">Return Date</label>
                     <input type="date" id="returnDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="returnCondition" data-i18n="returns.condition">Condition</label>
-                    <select id="returnCondition">
-                        <option value="goed" data-i18n="returns.conditionGood">Good</option>
-                        <option value="beschadigd" data-i18n="returns.conditionDamaged">Damaged</option>
-                        <option value="verloren" data-i18n="returns.conditionLost">Lost</option>
+                    <label for="returnCondition">Condition</label>
+                    <select id="returnCondition" required>
+                        <option value="good">Good</option>
+                        <option value="damaged">Damaged</option>
+                        <option value="lost">Lost</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="returnComments" data-i18n="returns.comments">Comments</label>
-                    <textarea id="returnComments" rows="3"></textarea>
+                    <label for="returnComments">Comments</label>
+                    <textarea id="returnComments"></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" onclick="closeModal('returnModal')" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" data-i18n="common.save">Save</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('returnModal')">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner">
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
         <div class="spinner"></div>
     </div>
 
-    <!-- Toast Notifications -->
+    <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
     <script src="magazijn.js"></script>
